@@ -8,21 +8,31 @@ export default function Home() {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "That's awesome. I think our users will really appreciate the improvements.",
-    },
-    {
-      id: 2,
-      text: "That's awesome. I think our users will really appreciate the improvements.",
+      text: "Bienvenido al TOOLBOT.",
     }
   ]);
 
-  const [selectedMessageId, setSelectedMessageId] = useState(null);
-  const dropdownRef = useRef(null);
+  const addMessage = () => {
+    const newMessage = {
+      id: messages.length + 1,
+      text: "Nuevo mensaje",
+    };
+    setMessages([...messages, newMessage]);
+  };
 
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
+  const [editedMessage, setEditedMessage] = useState("");
+
+  const [messageStatus, setMessageStatus] = useState({});
+  const [editedMessages, setEditedMessages] = useState({});
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const toggleDropdown = (messageId) => {
     setIsDropdownVisible(!isDropdownVisible);
     setSelectedMessageId(messageId);
+    setEditedMessage(editedMessages[messageId] || messages.find((message) => message.id === messageId).text);
+    setIsEditing(false);
   };
 
   const deleteMessage = () => {
@@ -31,6 +41,38 @@ export default function Home() {
       setIsDropdownVisible(false);
     }
   };
+
+  const toggleMessageStatus = (messageId) => {
+    setMessageStatus((prevStatus) => ({
+      ...prevStatus,
+      [messageId]: !prevStatus[messageId],
+    }));
+  };
+
+  const startEditing = (messageId) => {
+    setIsEditing(true);
+    setSelectedMessageId(messageId);
+  };
+
+  const stopEditing = () => {
+    setIsEditing(false);
+    setSelectedMessageId(null);
+  };
+
+  const editMessage = () => {
+    if (selectedMessageId !== null) {
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
+          message.id === selectedMessageId
+            ? { ...message, text: editedMessages[message.id] || message.text }
+            : message
+        )
+      );
+      setIsDropdownVisible(false);
+    }
+    stopEditing();
+  };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -49,14 +91,29 @@ export default function Home() {
 
       <div className="mt-4">
         {messages.map((message) => (
-          <div key={message.id} className="flex items-start gap-2.5">
+          <div key={message.id} className="flex items-start gap-2.5 mt-2">
             <div className="flex flex-col max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">Bot</span>
                 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">Mensaje</span>
               </div>
-              <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{message.text}</p>
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400 hidden">Finalizada</span>
+              <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+                {isEditing && selectedMessageId === message.id ? (
+                  <textarea
+                    value={editedMessages[message.id] || message.text}
+                    onChange={(e) =>
+                      setEditedMessages((prevEditedMessages) => ({
+                        ...prevEditedMessages,
+                        [message.id]: e.target.value,
+                      }))
+                    }
+                    className="w-full border rounded p-2"
+                  />
+                ) : (
+                  message.text
+                )}
+              </p>              <span className={`text-sm font-normal text-red-500 dark:text-gray-400 ${messageStatus[message.id] ? '' : 'hidden'}`}>
+                Finalizada</span>
             </div>
             <button
               id={`dropdownMenuIconButton_${message.id}`}
@@ -74,17 +131,21 @@ export default function Home() {
             >
               <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
                 <li>
-                  <a href="#" onClick={deleteMessage} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                  <a href="javascript:void(0)" onClick={deleteMessage} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Eliminar
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                    Editar
+                  <a
+                    href="javascript:void(0)"
+                    onClick={() => (isEditing ? editMessage() : startEditing(message.id))}
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    {isEditing && selectedMessageId === message.id ? "Guardar" : "Editar"}
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                  <a href="javascript:void(0)" onClick={() => toggleMessageStatus(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Finalizar
                   </a>
                 </li>
@@ -100,29 +161,30 @@ export default function Home() {
 
       <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600">
         <div className="grid h-full max-w-lg grid-cols-6 gap-10 mx-auto font-medium">
-          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
+          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onClick={addMessage}
+          >
             <ChatBubbleBottomCenterTextIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Mensaje</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <DevicePhoneMobileIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Teléfono</span>
+            <DevicePhoneMobileIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Teléfono</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <CloudIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Servicio</span>
+            <CloudIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Servicio</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <WalletIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Variables</span>
+            <WalletIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Variables</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <SquaresPlusIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Opciones</span>
+            <SquaresPlusIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Opciones</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <FilmIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Multimedia</span>
+            <FilmIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Multimedia</span>
           </button>
         </div>
       </div>
