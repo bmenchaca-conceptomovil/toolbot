@@ -100,7 +100,7 @@ export default function Home() {
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
                   <textarea
-                    value={editedMessages[message.id] || message.text}
+                    value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.text}
                     onChange={(e) =>
                       setEditedMessages((prevEditedMessages) => ({
                         ...prevEditedMessages,
@@ -112,7 +112,9 @@ export default function Home() {
                 ) : (
                   message.text
                 )}
-              </p>              <span className={`text-sm font-normal text-red-500 dark:text-gray-400 ${messageStatus[message.id] ? '' : 'hidden'}`}>
+              </p>
+
+              <span className={`text-sm font-normal text-red-500 dark:text-gray-400 ${messageStatus[message.id] ? '' : 'hidden'}`}>
                 Finalizada</span>
             </div>
             <button
