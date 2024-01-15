@@ -63,7 +63,9 @@ export default function Home() {
 
   const deleteMessage = () => {
     if (selectedMessageId !== null) {
-      setMessages(messages.filter((message) => message.id !== selectedMessageId));
+      setMessages({
+        messages: messages.messages.filter((message) => message.id !== selectedMessageId),
+      });
       setIsDropdownVisible(false);
     }
   };
@@ -91,7 +93,6 @@ export default function Home() {
     if (selectedMessageId !== null) {
       const editedText = editedMessages[selectedMessageId];
 
-      // Verificar si el texto editado no está vacío
       if (editedText !== undefined && editedText.trim() !== "") {
         setMessages((prevMessages) => ({
           ...prevMessages,
@@ -108,9 +109,6 @@ export default function Home() {
 
     stopEditing();
   };
-
-
-
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -194,9 +192,6 @@ export default function Home() {
             </div>
           </div>
         ))}
-
-
-
       </div>
 
 
