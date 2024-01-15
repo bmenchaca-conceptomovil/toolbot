@@ -5,19 +5,41 @@ import { ChatBubbleBottomCenterTextIcon, DevicePhoneMobileIcon, CloudIcon, Walle
 export default function Home() {
 
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Bienvenido al TOOLBOT.",
-    }
-  ]);
+  const [messages, setMessages] = useState({
+    messages: [
+      {
+        id: 1,
+        type: "message",
+        data: {
+          from: "5215552624983",
+          to: "527295465229",
+          type: "text",
+          text: "Bienvenido al TOOLBOT.",
+          preview_url: false
+        },
+        prev: "0",
+        next: "2"
+      }
+    ]
+  });
 
   const addMessage = () => {
     const newMessage = {
-      id: messages.length + 1,
-      text: "Nuevo mensaje",
+      id: messages.messages.length + 1,
+      type: "message",
+      data: {
+        from: "5215552624983",
+        to: "527295465229",
+        type: "text",
+        text: "Nuevo mensaje",
+        preview_url: false
+      },
+      prev: messages.messages[messages.messages.length - 1].id.toString(),
+      next: (messages.messages.length + 2).toString()
     };
-    setMessages([...messages, newMessage]);
+    setMessages({
+      messages: [...messages.messages, newMessage]
+    });
   };
 
   const [selectedMessageId, setSelectedMessageId] = useState(null);
@@ -31,9 +53,13 @@ export default function Home() {
   const toggleDropdown = (messageId) => {
     setIsDropdownVisible(!isDropdownVisible);
     setSelectedMessageId(messageId);
-    setEditedMessage(editedMessages[messageId] || messages.find((message) => message.id === messageId).text);
+
+    const messageToEdit = messages.messages.find((message) => message.id === messageId);
+
+    setEditedMessage(editedMessages[messageId] || (messageToEdit && messageToEdit.data.text) || "");
     setIsEditing(false);
   };
+
 
   const deleteMessage = () => {
     if (selectedMessageId !== null) {
@@ -52,6 +78,8 @@ export default function Home() {
   const startEditing = (messageId) => {
     setIsEditing(true);
     setSelectedMessageId(messageId);
+    const messageToEdit = messages.messages.find((message) => message.id === messageId);
+    setEditedMessage(editedMessages[messageId] || messageToEdit.data.text);
   };
 
   const stopEditing = () => {
@@ -61,17 +89,27 @@ export default function Home() {
 
   const editMessage = () => {
     if (selectedMessageId !== null) {
-      setMessages((prevMessages) =>
-        prevMessages.map((message) =>
-          message.id === selectedMessageId
-            ? { ...message, text: editedMessages[message.id] || message.text }
-            : message
-        )
-      );
+      const editedText = editedMessages[selectedMessageId];
+
+      // Verificar si el texto editado no está vacío
+      if (editedText !== undefined && editedText.trim() !== "") {
+        setMessages((prevMessages) => ({
+          ...prevMessages,
+          messages: prevMessages.messages.map((message) =>
+            message.id === selectedMessageId
+              ? { ...message, data: { ...message.data, text: editedText } }
+              : message
+          ),
+        }));
+      }
+
       setIsDropdownVisible(false);
     }
+
     stopEditing();
   };
+
+
 
 
   return (
@@ -90,17 +128,17 @@ export default function Home() {
       </nav>
 
       <div className="mt-4">
-        {messages.map((message) => (
+        {messages.messages.map((message) => (
           <div key={message.id} className="flex items-start gap-2.5 mt-2">
             <div className="flex flex-col max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">Bot</span>
-                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">Mensaje</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">{message.data.from}</span>
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{message.data.type}</span>
               </div>
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
                   <textarea
-                    value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.text}
+                    value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.data.text}
                     onChange={(e) =>
                       setEditedMessages((prevEditedMessages) => ({
                         ...prevEditedMessages,
@@ -110,12 +148,13 @@ export default function Home() {
                     className="w-full border rounded p-2"
                   />
                 ) : (
-                  message.text
+                  message.data.text
                 )}
               </p>
 
               <span className={`text-sm font-normal text-red-500 dark:text-gray-400 ${messageStatus[message.id] ? '' : 'hidden'}`}>
-                Finalizada</span>
+                Finalizada
+              </span>
             </div>
             <button
               id={`dropdownMenuIconButton_${message.id}`}
@@ -151,11 +190,11 @@ export default function Home() {
                     Finalizar
                   </a>
                 </li>
-
               </ul>
             </div>
           </div>
         ))}
+
 
 
       </div>
