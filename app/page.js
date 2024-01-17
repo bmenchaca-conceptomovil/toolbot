@@ -10,7 +10,7 @@ export default function Home() {
       messagesObject[index + 1] = message;
     });
 
-    const jsonContent = JSON.stringify(messagesObject, null, 2);
+    const jsonContent = JSON.stringify({ bot_slug: messages.bot_slug, messages: messagesObject }, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -28,7 +28,7 @@ export default function Home() {
       messagesObject[index + 1] = message;
     });
 
-    const jsonString = JSON.stringify(messagesObject, null, 2);
+    const jsonString = JSON.stringify({ bot_slug: messages.bot_slug, messages: messagesObject }, null, 2);
     const escapedJsonString = jsonString
       .replace(/"/g, '\\"')
       .replace(/\n/g, '\\n');
@@ -54,12 +54,13 @@ export default function Home() {
 
 
   };
-
+ 
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [messages, setMessages] = useState({
+    bot_slug:"",
     messages: [
       {
-        keyword: "--",
+        keyword: "",
         id: 1,
         type: "message",
         data: {
@@ -162,6 +163,32 @@ export default function Home() {
     stopEditing();
   };
 
+  //guardar valor slug
+  const setBotSlug = () => {
+    const promptValue = prompt("Ingresa el valor para bot_slug:");
+    if (promptValue !== null) {
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        bot_slug: promptValue,
+      }));
+    }
+  };
+
+  //guardar valor keyword
+  const toggleKeyword = (messageId) => {
+    const promptValue = prompt("Ingresa el valor para keyword:");
+    if (promptValue !== null) {
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        messages: prevMessages.messages.map((message) =>
+          message.id === messageId
+            ? { ...message, keyword: promptValue }
+            : message
+        ),
+      }));
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
       <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
@@ -177,6 +204,11 @@ export default function Home() {
             <button type="button" className="mr-2 px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={publishJson}>
               Publicar
             </button>
+            {/* boton de detalles con alert*/}
+            <button type="button" className="mr-2 px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={setBotSlug}>
+              Detalles
+            </button>
+
           </div>
         </div>
       </nav>
@@ -242,6 +274,12 @@ export default function Home() {
                 <li>
                   <a href="javascript:void(0)" onClick={() => toggleMessageStatus(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Finalizar
+                  </a>
+                </li>
+                {/* Opcion de Keyword con alert*/}
+                <li>
+                  <a href="javascript:void(0)" onClick={() => toggleKeyword(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Keyword
                   </a>
                 </li>
               </ul>
