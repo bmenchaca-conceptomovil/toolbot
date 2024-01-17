@@ -80,6 +80,7 @@ export default function Home() {
     const newMessage = {
       id: messages.messages.length + 1,
       type: "message",
+      keyword: "",
       data: {
         from: "5215552624983",
         to: "527295465229",
@@ -177,17 +178,16 @@ export default function Home() {
   //guardar valor keyword
   const toggleKeyword = (messageId) => {
     const promptValue = prompt("Ingresa el valor para keyword:");
-    if (promptValue !== null) {
-      setMessages((prevMessages) => ({
-        ...prevMessages,
-        messages: prevMessages.messages.map((message) =>
-          message.id === messageId
-            ? { ...message, keyword: promptValue }
-            : message
-        ),
-      }));
-    }
-  };
+    const keywordValue = promptValue !== null ? promptValue : "";
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      messages: prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? { ...message, keyword: keywordValue }
+          : message
+      ),
+    }));
+  };  
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
