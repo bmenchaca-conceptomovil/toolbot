@@ -50,14 +50,11 @@ export default function Home() {
       .then(response => response.text())
       .then(result => console.log(result))
       .catch(error => console.log('error', error));
-
-
-
   };
- 
+
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [messages, setMessages] = useState({
-    bot_slug:"",
+    bot_slug: "",
     messages: [
       {
         keyword: "",
@@ -175,7 +172,6 @@ export default function Home() {
     }
   };
 
-  //guardar valor keyword
   const toggleKeyword = (messageId) => {
     const promptValue = prompt("Ingresa el valor para keyword:");
     const keywordValue = promptValue !== null ? promptValue : "";
@@ -187,7 +183,7 @@ export default function Home() {
           : message
       ),
     }));
-  };  
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -196,19 +192,31 @@ export default function Home() {
           <a href="#" className="flex items-center rtl:space-x-reverse">
             <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Toolbot</span>
           </a>
-          <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse mt-1">
-            <button type="button" className="flex items-center justify-center mr-2 px-5 h-[2.5rem] me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 group hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" onClick={exportToJson}>
+
+
+          <div className="flex md:order-2 space-x-2 md:space-x-2 rtl:space-x-reverse mt-1">
+            <button
+              type="button"
+              className="flex items-center justify-center px-5 h-[2.5rem] text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 group hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              onClick={exportToJson}
+            >
               <span className="group-hover:text-blue-600 dark:group-hover:text-blue-500">Exportar</span>
               <ArrowDownTrayIcon className="w-6 h-6 ml-2 text-gray-900 dark:text-gray-900 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             </button>
-            <button type="button" className="mr-2 px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={publishJson}>
+            <button
+              type="button"
+              className="px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              onClick={publishJson}
+            >
               Publicar
             </button>
-            {/* boton de detalles con alert*/}
-            <button type="button" className="mr-2 px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={setBotSlug}>
+            <button
+              type="button"
+              className="px-5 h-[2.5rem] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              onClick={setBotSlug}
+            >
               Detalles
             </button>
-
           </div>
         </div>
       </nav>
@@ -263,6 +271,11 @@ export default function Home() {
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:void(0)" onClick={() => toggleKeyword(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Keyword
+                  </a>
+                </li>
+                <li>
                   <a
                     href="javascript:void(0)"
                     onClick={() => (isEditing ? editMessage() : startEditing(message.id))}
@@ -276,12 +289,6 @@ export default function Home() {
                     Finalizar
                   </a>
                 </li>
-                {/* Opcion de Keyword con alert*/}
-                <li>
-                  <a href="javascript:void(0)" onClick={() => toggleKeyword(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                    Keyword
-                  </a>
-                </li>
               </ul>
             </div>
           </div>
@@ -289,35 +296,30 @@ export default function Home() {
       </div>
 
       <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-        <div className="grid h-full max-w-lg grid-cols-6 gap-10 mx-auto font-medium">
+        <div className="grid h-full max-w-lg grid-cols-5 gap-10 mx-auto font-medium">
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onClick={addMessage}
           >
-            <ChatBubbleBottomCenterTextIcon className="w-6 h-6 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <ChatBubbleBottomCenterTextIcon className="w-7 h-7 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Mensaje</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <DevicePhoneMobileIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Teléfono</span>
-          </button>
-          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <CloudIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <CloudIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Servicio</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <WalletIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <WalletIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Variables</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <SquaresPlusIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <SquaresPlusIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Opciones</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <FilmIcon className="w-6 h-6 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <FilmIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Multimedia</span>
           </button>
         </div>
       </div>
-
     </main>
   );
 }
