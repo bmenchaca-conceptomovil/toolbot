@@ -117,6 +117,24 @@ export default function Home() {
     });
   };
 
+  //delete Option
+  const deleteOption = (messageId, optionIndex) => {
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      messages: prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              data: {
+                ...message.data,
+                options: message.data.options.filter((_, index) => index !== optionIndex),
+              },
+            }
+          : message
+      ),
+    }));
+  };  
+
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const [editedMessage, setEditedMessage] = useState("");
 
@@ -274,7 +292,7 @@ export default function Home() {
               </div>
               {message.type === "option" && (
                 <div className="mt-3 space-y-2">
-                  {message.data.options.map((option) => (
+                  {message.data.options.map((option, index) => (
                     <div key={option.id} className="flex items-center space-x-2">
                       <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.label}:</label>
                       <input
@@ -283,6 +301,9 @@ export default function Home() {
                         onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
                         className="border rounded p-2 w-42"
                       />
+                      <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, index)}>
+                        Eliminar
+                      </button>
                     </div>
                   ))}
                 </div>
