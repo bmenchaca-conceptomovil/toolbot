@@ -93,6 +93,30 @@ export default function Home() {
     });
   };
 
+  const addOption = () => {
+    const newMessage = {
+      id: messages.messages.length + 1,
+      type: "option",
+      keyword: "",
+      data: {
+        from: "5215552624983",
+        to: "527295465229",
+        type: "option",
+        text: "Estas son las opciones",
+        preview_url: false,
+        options: [
+          { id: 1, label: "Option 1", value: "", next: "1" },
+          { id: 2, label: "Option 2", value: "", next: "1" },
+        ],
+      },
+      prev: messages.messages[messages.messages.length - 1].id.toString(),
+      next: (messages.messages.length + 2).toString()
+    };
+    setMessages({
+      messages: [...messages.messages, newMessage]
+    });
+  };
+
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const [editedMessage, setEditedMessage] = useState("");
 
@@ -161,7 +185,6 @@ export default function Home() {
     stopEditing();
   };
 
-  //guardar valor slug
   const setBotSlug = () => {
     const promptValue = prompt("Ingresa el valor para bot_slug:");
     if (promptValue !== null) {
@@ -184,6 +207,26 @@ export default function Home() {
       ),
     }));
   };
+
+  const handleOptionInputChange = (messageId, optionId, value) => {
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      messages: prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? {
+            ...message,
+            data: {
+              ...message.data,
+              options: message.data.options.map((option) =>
+                option.id === optionId ? { ...option, value } : option
+              ),
+            },
+          }
+          : message
+      ),
+    }));
+  };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -224,11 +267,26 @@ export default function Home() {
       <div className="mt-4">
         {messages.messages.map((message) => (
           <div key={message.id} className="flex items-start gap-2.5 mt-2">
-            <div className="flex flex-col max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+            <div className="flex flex-col max-w-[420px] w-[420px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">{message.data.from}</span>
                 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{message.data.type}</span>
               </div>
+              {message.type === "option" && (
+                <div className="mt-3 space-y-2">
+                  {message.data.options.map((option) => (
+                    <div key={option.id} className="flex items-center space-x-2">
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.label}:</label>
+                      <input
+                        type="text"
+                        value={option.value}
+                        onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
+                        className="border rounded p-2 w-42"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
                   <textarea
@@ -289,6 +347,13 @@ export default function Home() {
                     Finalizar
                   </a>
                 </li>
+                {message.type === "option" && (
+                  <li>
+                    <a href="javascript:void(0)" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      Agregar
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -310,9 +375,9 @@ export default function Home() {
             <WalletIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Variables</span>
           </button>
-          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <SquaresPlusIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Opciones</span>
+          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onClick={addOption}>
+            <SquaresPlusIcon className="w-7 h-7 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Opciones</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
             <FilmIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
