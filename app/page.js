@@ -364,6 +364,7 @@ export default function Home() {
               )}
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
+                  //cambio
                   <textarea
                   value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.data.text}
                   onChange={(e) => {
@@ -420,20 +421,16 @@ export default function Home() {
                   </a>
                 </li>
                 <li>
+                  
                   <a
                     href="javascript:void(0)"
-                    onClick={() => {
-                      if (isEditing && selectedMessageId === message.id) {
-                        editMessage();
-                      } else {
-                        startEditing(message.id);
-                      }
-                    }}
+                    onClick={() => startEditing(message.id)}
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                   >
-                    {isEditing && selectedMessageId === message.id ? "Guardar" : "Editar"}
+                    Editar
                   </a>
                 </li>
+
                 <li>
                   <a href="javascript:void(0)" onClick={() => toggleMessageStatus(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Finalizar
