@@ -230,7 +230,7 @@ export default function Home() {
     setSelectedMessageId(null);
   };
 
-  const editMessage = () => {
+  /*const editMessage = () => {
     if (selectedMessageId !== null) {
       const editedText = editedMessages[selectedMessageId];
   
@@ -254,7 +254,7 @@ export default function Home() {
     }
   
     stopEditing();
-  };
+  };*/
   
 
   const setBotSlug = () => {
@@ -365,15 +365,26 @@ export default function Home() {
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
                   <textarea
-                    value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.data.text}
-                    onChange={(e) =>
-                      setEditedMessages((prevEditedMessages) => ({
-                        ...prevEditedMessages,
-                        [message.id]: e.target.value,
-                      }))
-                    }
-                    className="w-full border rounded p-2"
-                  />
+                  value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.data.text}
+                  onChange={(e) => {
+                    const newText = e.target.value;
+                
+                    setMessages((prevMessages) => ({
+                      ...prevMessages,
+                      messages: prevMessages.messages.map((msg) =>
+                        msg.id === message.id
+                          ? { ...msg, data: { ...msg.data, text: newText } }
+                          : msg
+                      ),
+                    }));
+                
+                    setEditedMessages((prevEditedMessages) => ({
+                      ...prevEditedMessages,
+                      [message.id]: newText,
+                    }));
+                  }}
+                  className="w-full border rounded p-2"
+                />                
                 ) : (
                   message.data.text
                 )}
