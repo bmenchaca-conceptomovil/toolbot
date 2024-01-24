@@ -117,7 +117,7 @@ export default function Home() {
     });
   };
 
-  //delete Option
+
   const deleteOption = (messageId, optionIndex) => {
     setMessages((prevMessages) => ({
       ...prevMessages,
@@ -134,6 +134,54 @@ export default function Home() {
       ),
     }));
   };  
+
+  const [lastOptionIndex, setLastOptionIndex] = useState(2);
+
+  const addOptionInput = (messageId) => {
+
+    const newIndex = lastOptionIndex + 1;
+  
+    const newOption = {
+      id: newIndex,
+      label: `Option ${newIndex}`,
+      value: "",
+      next: "1",
+    };
+  
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      messages: prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              data: {
+                ...message.data,
+                options: [...message.data.options, newOption],
+              },
+            }
+          : message
+      ),
+    }));
+  
+    setLastOptionIndex(newIndex);
+  };
+  
+  //guardar info sin confirmacion
+  const saveMessagesToLocalStorage = () => {
+    localStorage.setItem('messages', JSON.stringify(messages));
+  };
+
+  useEffect(() => {
+    const storedMessages = localStorage.getItem('messages');
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+    }
+  }, []);
+
+  useEffect(() => {
+    saveMessagesToLocalStorage();
+  }, [messages]);
+  
 
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const [editedMessage, setEditedMessage] = useState("");
@@ -174,7 +222,7 @@ export default function Home() {
     setIsEditing(true);
     setSelectedMessageId(messageId);
     const messageToEdit = messages.messages.find((message) => message.id === messageId);
-    setEditedMessage(editedMessages[messageId] || messageToEdit.data.text);
+    setEditedMessage(editedMessages[messageId] || (messageToEdit && messageToEdit.data.text) || "");
   };
 
   const stopEditing = () => {
@@ -185,7 +233,7 @@ export default function Home() {
   const editMessage = () => {
     if (selectedMessageId !== null) {
       const editedText = editedMessages[selectedMessageId];
-
+  
       if (editedText !== undefined && editedText.trim() !== "") {
         setMessages((prevMessages) => ({
           ...prevMessages,
@@ -196,12 +244,18 @@ export default function Home() {
           ),
         }));
       }
-
+  
+      setEditedMessages((prevEditedMessages) => ({
+        ...prevEditedMessages,
+        [selectedMessageId]: editedText,
+      }));
+  
       setIsDropdownVisible(false);
     }
-
+  
     stopEditing();
   };
+  
 
   const setBotSlug = () => {
     const promptValue = prompt("Ingresa el valor para bot_slug:");
@@ -282,7 +336,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="mt-4">
+      <div className="mt-4 pb-20">
         {messages.messages.map((message) => (
           <div key={message.id} className="flex items-start gap-2.5 mt-2">
             <div className="flex flex-col max-w-[420px] w-[420px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
@@ -357,7 +411,13 @@ export default function Home() {
                 <li>
                   <a
                     href="javascript:void(0)"
-                    onClick={() => (isEditing ? editMessage() : startEditing(message.id))}
+                    onClick={() => {
+                      if (isEditing && selectedMessageId === message.id) {
+                        editMessage();
+                      } else {
+                        startEditing(message.id);
+                      }
+                    }}
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                   >
                     {isEditing && selectedMessageId === message.id ? "Guardar" : "Editar"}
@@ -370,7 +430,7 @@ export default function Home() {
                 </li>
                 {message.type === "option" && (
                   <li>
-                    <a href="javascript:void(0)" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <a href="javascript:void(0)" onClick={() => addOptionInput(message.id)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                       Agregar
                     </a>
                   </li>
