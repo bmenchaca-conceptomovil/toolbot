@@ -364,7 +364,7 @@ export default function Home() {
               )}
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
-                  //cambio
+                  //Cambio
                   <textarea
                   value={editedMessages[message.id] !== undefined ? editedMessages[message.id] : message.data.text}
                   onChange={(e) => {
@@ -421,7 +421,8 @@ export default function Home() {
                   </a>
                 </li>
                 <li>
-                  
+                  {/* Elimincion de opcion guardar y guardadao automático*/}
+
                   <a
                     href="javascript:void(0)"
                     onClick={() => startEditing(message.id)}
