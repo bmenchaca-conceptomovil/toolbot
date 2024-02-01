@@ -94,6 +94,19 @@ export default function Home() {
   };
 
   const addOption = () => {
+    const newOptions = [
+      {
+        id: 1,
+        title: "Option 1",
+        messages: [{ id: `id${lastOptionIndex + 1}`, title: "", description: " " }],
+      },
+      {
+        id: 2,
+        title: "Option 2",
+        messages: [{ id: `id${lastOptionIndex + 2}`, title: "", description: " " }],
+      },
+    ];
+  
     const newMessage = {
       id: messages.messages.length + 1,
       type: "option",
@@ -102,23 +115,25 @@ export default function Home() {
         from: "5215552624983",
         to: "527295465229",
         type: "option",
-        text: "Estas son las opciones",
+        listMessages: {
+          headerText: " ",
+          body: " ",
+          footer: " ",
+          buttonText: " ",
+          options: newOptions,
+        },
         preview_url: false,
-        options: [
-          { id: 1, label: "Option 1", value: "", next: "1" },
-          { id: 2, label: "Option 2", value: "", next: "1" },
-        ],
       },
       prev: messages.messages[messages.messages.length - 1].id.toString(),
-      next: (messages.messages.length + 2).toString()
+      next: (messages.messages.length + 2).toString(),
     };
+  
     setMessages({
-      messages: [...messages.messages, newMessage]
+      messages: [...messages.messages, newMessage],
     });
   };
-
-
-  const deleteOption = (messageId, optionIndex) => {
+  
+  const deleteOption = (messageId, optionId) => {
     setMessages((prevMessages) => ({
       ...prevMessages,
       messages: prevMessages.messages.map((message) =>
@@ -127,44 +142,58 @@ export default function Home() {
               ...message,
               data: {
                 ...message.data,
-                options: message.data.options.filter((_, index) => index !== optionIndex),
+                listMessages: {
+                  ...message.data.listMessages,
+                  options: message.data.listMessages.options.filter((option) => option.id !== optionId),
+                },
               },
             }
           : message
       ),
     }));
-  };  
+  };
+  
+  
 
   const [lastOptionIndex, setLastOptionIndex] = useState(2);
 
   const addOptionInput = (messageId) => {
-
-    const newIndex = lastOptionIndex + 1;
+    const currentMessage = messages.messages.find((message) => message.id === messageId);
   
-    const newOption = {
-      id: newIndex,
-      label: `Option ${newIndex}`,
-      value: "",
-      next: "1",
-    };
+    if (currentMessage && currentMessage.type === "option" && currentMessage.data.listMessages.options) {
+      const newIndex = currentMessage.data.listMessages.options.length + 1;
+      
+      const newOption = {
+        id: newIndex,
+        title: `Option ${newIndex}`,
+        messages: [
+          {
+            id: `id${newIndex}`,
+            title: "",
+            description: " ",
+          },
+        ],
+      };
   
-    setMessages((prevMessages) => ({
-      ...prevMessages,
-      messages: prevMessages.messages.map((message) =>
-        message.id === messageId
-          ? {
-              ...message,
-              data: {
-                ...message.data,
-                options: [...message.data.options, newOption],
-              },
-            }
-          : message
-      ),
-    }));
-  
-    setLastOptionIndex(newIndex);
-  };
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        messages: prevMessages.messages.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                data: {
+                  ...message.data,
+                  listMessages: {
+                    ...message.data.listMessages,
+                    options: [...message.data.listMessages.options, newOption],
+                  },
+                },
+              }
+            : message
+        ),
+      }));
+    }
+  }  
   
   //guardar info sin confirmacion
   const saveMessagesToLocalStorage = () => {
@@ -286,19 +315,28 @@ export default function Home() {
       messages: prevMessages.messages.map((message) =>
         message.id === messageId
           ? {
-            ...message,
-            data: {
-              ...message.data,
-              options: message.data.options.map((option) =>
-                option.id === optionId ? { ...option, value } : option
-              ),
-            },
-          }
+              ...message,
+              data: {
+                ...message.data,
+                listMessages: {
+                  ...message.data.listMessages,
+                  options: message.data.listMessages.options.map((option) =>
+                    option.id === optionId
+                      ? {
+                          ...option,
+                          messages: [{ ...option.messages[0], title: value }],
+                        }
+                      : option
+                  ),
+                },
+              },
+            }
           : message
       ),
     }));
   };
-
+  
+    
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -344,24 +382,28 @@ export default function Home() {
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">{message.data.from}</span>
                 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{message.data.type}</span>
               </div>
+
               {message.type === "option" && (
                 <div className="mt-3 space-y-2">
-                  {message.data.options.map((option, index) => (
+                  {message.data.listMessages.options.map((option) => (
                     <div key={option.id} className="flex items-center space-x-2">
-                      <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.label}:</label>
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.title}:</label>
                       <input
                         type="text"
-                        value={option.value}
+                        value={option.messages[0].title}
                         onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
                         className="border rounded p-2 w-42"
                       />
-                      <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, index)}>
+                      <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, option.id)}>
                         Eliminar
                       </button>
                     </div>
                   ))}
                 </div>
               )}
+
+
+
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
                   //Cambio
