@@ -98,12 +98,12 @@ export default function Home() {
       {
         id: 1,
         title: "Option 1",
-        messages: [{ id: `id${lastOptionIndex + 1}`, title: "", description: " " }],
+        messages: [{ id: lastOptionIndex , title: "", description: " " }],
       },
       {
         id: 2,
         title: "Option 2",
-        messages: [{ id: `id${lastOptionIndex + 2}`, title: "", description: " " }],
+        messages: [{ id: lastOptionIndex , title: "", description: " " }],
       },
     ];
   
