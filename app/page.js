@@ -336,8 +336,99 @@ export default function Home() {
     }));
   };
   
-    
+  //Funciones para añadir Servicio
+  const addService = () => {
+    const newService = {
+      id: messages.messages.length + 1,
+      type: "service",
+      keyword: "",
+      data: {
+        from: "5215552624983",
+        to: "527295465229",
+        type: "service",
+        service: {
+          title: `Service ${messages.messages.length + 1}`,
+          services: Array.from({ length: 2 }, (_, index) => ({
+            id: index + 1,
+            title: `Service ${index + 1}`,
+            messages: [
+              {
+                id: 1,
+                title: `Input ${index + 1}`,
+                value: "",
+              },
+              {
+                id: 2,
+                title: "Button",
+                value: "",
+              },
+            ],
+          })),
+        },
+        preview_url: false,
+      },
+      prev: messages.messages[messages.messages.length - 1].id.toString(),
+      next: (messages.messages.length + 2).toString(),
+    };
+  
+    setMessages({
+      messages: [...messages.messages, newService],
+    });
+  };
 
+  const handleServiceSelectChange = (messageId, serviceId, selectedValue) => {
+    setMessages((prevMessages) => {
+      const newMessages = { ...prevMessages };
+      const serviceIndex = newMessages.messages.findIndex((msg) => msg.id === messageId);
+  
+      if (serviceIndex !== -1) {
+        const service = newMessages.messages[serviceIndex].data.service.services.find(
+          (s) => s.id === serviceId
+        );
+  
+        if (service) {
+          service.messages[0].value = selectedValue;
+          return newMessages;
+        }
+      }
+      return prevMessages;
+    });
+  };
+  
+  const handleServiceInputChange = (messageId, serviceIndex, value) => {
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      messages: prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              data: {
+                ...message.data,
+                service: {
+                  ...message.data.service,
+                  services: message.data.service.services.map((service, index) =>
+                    index === serviceIndex
+                      ? {
+                          ...service,
+                          messages: service.messages.map((msg) =>
+                            msg.id === 1
+                              ? {
+                                  ...msg,
+                                  value: value,
+                                }
+                              : msg
+                          ),
+                        }
+                      : service
+                  ),
+                },
+              },
+            }
+          : message
+      ),
+    }));
+  };     
+  
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
       <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
@@ -402,7 +493,60 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Div para servicios */}
+              {message.type === "service" && (
+                <div className="flex flex-col max-w-[420px] w-[420px]">
+                    {message.data.service.services.map((service, serviceIndex) => (
+                      <div key={serviceIndex} className="flex items-center mt-2 mb-4">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {service.title}:
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value={(service.messages[0] && service.messages[0].value) || ""}
+                            onChange={(e) => handleServiceSelectChange(message.id, service.id, e.target.value)}
+                            className="border rounded p-2 ml-2"
+                            style={{ width: "13rem" }}
+                          >
+                            <option value="Option1">next id</option>
+                            <option value="Option2">prev id</option>
+                          </select>
+                          {/* Botón verde sin función */}
+                          <button className="px-5 h-[2.5rem] text-white bg-green-500 rounded">Status</button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center mb-2">
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white mr-6">Name:</label>
+                      <input
+                        type="text"
+                        value={(message.data.service.services[2]?.messages[0]?.value) || ""}
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 1, e.target.value)} 
+                        className="border rounded p-2 w-42 ml-2"
+                      />
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white mr-3">Method:</label>
+                      <input
+                        type="text"
+                        value={(message.data.service.services[2]?.messages[1]?.value) || ""}
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 2, e.target.value)} 
+                        className="border rounded p-2 w-42 ml-2"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white mr-8">URL:</label>
+                      <input
+                        type="text"
+                        value={(message.data.service.services[2]?.messages[2]?.value) || ""} 
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 3, e.target.value)} 
+                        className="border rounded p-2 w-42 ml-3"
+                      />
+                    </div>
 
+
+                </div>
+              )}
 
               <p className="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
                 {isEditing && selectedMessageId === message.id ? (
@@ -499,9 +643,9 @@ export default function Home() {
             <ChatBubbleBottomCenterTextIcon className="w-7 h-7 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
             <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Mensaje</span>
           </button>
-          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <CloudIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
-            <span className="text-xs text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Servicio</span>
+          <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onClick={addService}>
+            <CloudIcon className="w-7 h-7 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
+            <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Servicio</span>
           </button>
           <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
             <WalletIcon className="w-7 h-7 mb-2 text-gray-300 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" />
