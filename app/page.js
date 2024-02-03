@@ -93,50 +93,90 @@ export default function Home() {
     });
   };
 
+  let optionCounter = 1; 
+
   const addOption = () => {
-    const newOptions = [
-      {
-        id: 1,
-        title: "Option 1",
-        messages: [{ id: lastOptionIndex , title: "", description: " " }],
-      },
-      {
-        id: 2,
-        title: "Option 2",
-        messages: [{ id: lastOptionIndex , title: "", description: " " }],
-      },
-    ];
-  
-    const newMessage = {
-      id: messages.messages.length + 1,
-      type: "option",
-      keyword: "",
-      data: {
-        from: "5215552624983",
-        to: "527295465229",
-        type: "option",
-        listMessages: {
-          headerText: " ",
-          body: " ",
-          footer: " ",
-          buttonText: " ",
-          options: newOptions,
+    setMessages((prevMessages) => {
+      const newOptions = [
+        {
+          id: `option-${optionCounter}.1`,
+          title: `Option 1`,
+          description: " ",
         },
-        preview_url: false,
-      },
-      prev: messages.messages[messages.messages.length - 1].id.toString(),
-      next: (messages.messages.length + 2).toString(),
-    };
-  
-    setMessages({
-      messages: [...messages.messages, newMessage],
+        {
+          id: `option-${optionCounter}.2`,
+          title: `Option 2`,
+          description: " ",
+        },
+      ];
+
+      const newMessage = {
+        id: optionCounter.toString(),
+        type: "option",
+        keyword: "",
+        data: {
+          from: "5215552624983",
+          to: "527295465229",
+          type: "option",
+          listMessages: {
+            headerText: " ",
+            body: " ",
+            footer: " ",
+            buttonText: " ",
+            sections: [
+              {
+                messages: newOptions,
+              },
+            ],
+          },
+          preview_url: false,
+        },
+        prev: prevMessages.messages[prevMessages.messages.length - 1].id.toString(),
+        next: (optionCounter + 2).toString(),
+      };
+
+      optionCounter += 2;
+
+      return {
+        ...prevMessages,
+        messages: [...prevMessages.messages, newMessage],
+      };
     });
   };
+
   
   const deleteOption = (messageId, optionId) => {
     setMessages((prevMessages) => ({
       ...prevMessages,
-      messages: prevMessages.messages.map((message) =>
+      messages: prevMessages.messages.map((message) => {
+        if (message.id === messageId && message.data.listMessages.sections) {
+          const newSections = message.data.listMessages.sections.map((section) => ({
+            ...section,
+            messages: section.messages.filter((option) => option.id !== optionId),
+          }));
+
+          return {
+            ...message,
+            data: {
+              ...message.data,
+              listMessages: {
+                ...message.data.listMessages,
+                sections: newSections,
+              },
+            },
+          };
+        }
+        return message;
+      }),
+    }));
+  };
+
+
+  const [lastOptionIndex, setLastOptionIndex] = useState(2);
+
+  const addOptionInput = (messageId) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.messages.map((message) =>
         message.id === messageId
           ? {
               ...message,
@@ -144,56 +184,37 @@ export default function Home() {
                 ...message.data,
                 listMessages: {
                   ...message.data.listMessages,
-                  options: message.data.listMessages.options.filter((option) => option.id !== optionId),
+                  sections: message.data.listMessages.sections.map((section) =>
+                    section.messages
+                      ? {
+                          ...section,
+                          messages: [
+                            ...section.messages,
+                            {
+                              id: section.messages.length + 1, 
+                              title: `Option ${section.messages.length + 1}`,
+                              messages: [
+                                {
+                                  id: `id${section.messages.length + 1}`,
+                                  title: "",
+                                  description: " ",
+                                },
+                              ],
+                            },
+                          ],
+                        }
+                      : section
+                  ),
                 },
               },
             }
           : message
-      ),
-    }));
+      );
+
+      return { ...prevMessages, messages: updatedMessages };
+    });
   };
-  
-  
 
-  const [lastOptionIndex, setLastOptionIndex] = useState(2);
-
-  const addOptionInput = (messageId) => {
-    const currentMessage = messages.messages.find((message) => message.id === messageId);
-  
-    if (currentMessage && currentMessage.type === "option" && currentMessage.data.listMessages.options) {
-      const newIndex = currentMessage.data.listMessages.options.length + 1;
-      
-      const newOption = {
-        id: newIndex,
-        title: `Option ${newIndex}`,
-        messages: [
-          {
-            id: `id${newIndex}`,
-            title: "",
-            description: " ",
-          },
-        ],
-      };
-  
-      setMessages((prevMessages) => ({
-        ...prevMessages,
-        messages: prevMessages.messages.map((message) =>
-          message.id === messageId
-            ? {
-                ...message,
-                data: {
-                  ...message.data,
-                  listMessages: {
-                    ...message.data.listMessages,
-                    options: [...message.data.listMessages.options, newOption],
-                  },
-                },
-              }
-            : message
-        ),
-      }));
-    }
-  }  
   
   //guardar info sin confirmacion
   const saveMessagesToLocalStorage = () => {
@@ -476,18 +497,22 @@ export default function Home() {
 
               {message.type === "option" && (
                 <div className="mt-3 space-y-2">
-                  {message.data.listMessages.options.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.title}:</label>
-                      <input
-                        type="text"
-                        value={option.messages[0].title}
-                        onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
-                        className="border rounded p-2 w-42"
-                      />
-                      <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, option.id)}>
-                        Eliminar
-                      </button>
+                  {message.data.listMessages.sections && message.data.listMessages.sections.map((section, sectionIndex) => (
+                    <div key={sectionIndex}>
+                      {section.messages && section.messages.map((option) => (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.title}:</label>
+                          <input
+                            type="text"
+                            value={option.messages && option.messages[0] ? option.messages[0].title : ""}
+                            onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
+                            className="border rounded p-2 w-42"
+                          />
+                          <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, option.id)}>
+                            Eliminar
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -521,7 +546,7 @@ export default function Home() {
                       <input
                         type="text"
                         value={(message.data.service.services[2]?.messages[0]?.value) || ""}
-                        onChange={(e) => handleServiceInputChange(message.id, 2, 1, e.target.value)} 
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 1, e.target.value)}
                         className="border rounded p-2 w-42 ml-2"
                       />
                     </div>
