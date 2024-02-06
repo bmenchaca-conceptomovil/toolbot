@@ -99,19 +99,19 @@ export default function Home() {
     setMessages((prevMessages) => {
       const newOptions = [
         {
-          id: `option-${optionCounter}.1`,
+          id: `${optionCounter}.1`,
           title: `Option 1`,
           description: " ",
         },
         {
-          id: `option-${optionCounter}.2`,
+          id: `${optionCounter}.2`,
           title: `Option 2`,
           description: " ",
         },
       ];
 
       const newMessage = {
-        id: optionCounter.toString(),
+        id: messages.messages.length + 1,
         type: "option",
         keyword: "",
         data: {
@@ -132,7 +132,7 @@ export default function Home() {
           preview_url: false,
         },
         prev: prevMessages.messages[prevMessages.messages.length - 1].id.toString(),
-        next: (optionCounter + 2).toString(),
+        next: (prevMessages.messages.length + 1).toString(),
       };
 
       optionCounter += 2;
@@ -191,15 +191,9 @@ export default function Home() {
                           messages: [
                             ...section.messages,
                             {
-                              id: section.messages.length + 1, 
+                              id: `${messageId}.${section.messages.length + 1}`,
                               title: `Option ${section.messages.length + 1}`,
-                              messages: [
-                                {
-                                  id: `id${section.messages.length + 1}`,
-                                  title: "",
-                                  description: " ",
-                                },
-                              ],
+                              description: " ",
                             },
                           ],
                         }
@@ -210,11 +204,10 @@ export default function Home() {
             }
           : message
       );
-
+  
       return { ...prevMessages, messages: updatedMessages };
     });
-  };
-
+  };  
   
   //guardar info sin confirmacion
   const saveMessagesToLocalStorage = () => {
@@ -331,9 +324,10 @@ export default function Home() {
   };
 
   const handleOptionInputChange = (messageId, optionId, value) => {
-    setMessages((prevMessages) => ({
-      ...prevMessages,
-      messages: prevMessages.messages.map((message) =>
+    console.log("handleOptionInputChange called with messageId:", messageId, "optionId:", optionId, "value:", value);
+  
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.messages.map((message) =>
         message.id === messageId
           ? {
               ...message,
@@ -341,11 +335,13 @@ export default function Home() {
                 ...message.data,
                 listMessages: {
                   ...message.data.listMessages,
-                  options: message.data.listMessages.options.map((option) =>
+                  options: (message.data.listMessages.options || []).map((option) =>
                     option.id === optionId
                       ? {
                           ...option,
-                          messages: [{ ...option.messages[0], title: value }],
+                          messages: option.messages.map((msg) =>
+                            msg.id === 1 ? { ...msg, title: value } : msg
+                          ),
                         }
                       : option
                   ),
@@ -353,14 +349,52 @@ export default function Home() {
               },
             }
           : message
-      ),
-    }));
-  };
+      );
   
+      return { ...prevMessages, messages: updatedMessages };
+    });
+  };   
+  
+  const saveOptionDescription = (messageId, sectionIndex, optionIndex, value) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.messages.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              data: {
+                ...message.data,
+                listMessages: {
+                  ...message.data.listMessages,
+                  sections: message.data.listMessages.sections.map((section, index) =>
+                    index === sectionIndex
+                      ? {
+                          ...section,
+                          messages: section.messages.map((option, optIndex) =>
+                            optIndex === optionIndex
+                              ? {
+                                  ...option,
+                                  description: value,
+                                }
+                              : option
+                          ),
+                        }
+                      : section
+                  ),
+                },
+              },
+            }
+          : message
+      );
+  
+      return { ...prevMessages, messages: updatedMessages };
+    });
+  };
+
   //Funciones para añadir Servicio
   const addService = () => {
+    const lastMessage = messages.messages[messages.messages.length - 1];
     const newService = {
-      id: messages.messages.length + 1,
+      id: lastMessage.id + 1,
       type: "service",
       keyword: "",
       data: {
@@ -368,21 +402,38 @@ export default function Home() {
         to: "527295465229",
         type: "service",
         service: {
-          title: `Service ${messages.messages.length + 1}`,
+          title: `Service ${lastMessage.id}`,
           services: Array.from({ length: 2 }, (_, index) => ({
             id: index + 1,
             title: `Service ${index + 1}`,
             messages: [
+              //primeros dos son los selectores
               {
-                id: 1,
-                title: `Input ${index + 1}`,
-                value: "",
+                id: `${index + 1}.1`,
+                title: `Select ${index + 1}`,
+                value: "Status 200",
               },
               {
-                id: 2,
-                title: "Button",
-                value: "",
+                id: `${index + 1}.2`,
+                title: `Select ${index + 2}`,
+                value: "Status 500",
               },
+              //inputs
+              {
+                id:`${index + 1}.3`,
+                title:"Name",
+                value:"",
+              },
+              {
+                id:`${index + 1}.4`,
+                title:"Method",
+                value:"",
+              },
+              {
+                id:`${index + 1}.5`,
+                title:"URL",
+                value:"",
+              }
             ],
           })),
         },
@@ -416,10 +467,24 @@ export default function Home() {
     });
   };
   
-  const handleServiceInputChange = (messageId, serviceIndex, value) => {
-    setMessages((prevMessages) => ({
-      ...prevMessages,
-      messages: prevMessages.messages.map((message) =>
+  //manejo de estado para los Inputs de servicio
+  const [inputService, setInputService] = useState({
+    key: "",
+    method: "",
+    url: "",
+  });
+
+  const handleServiceInputChange = (messageId, serviceIndex, inputIndex, value) => {
+    console.log("handleServiceInputChange called with messageId:", messageId, "serviceIndex:", serviceIndex, "inputIndex:", inputIndex, "value:", value);
+
+    setMessages((prevMessages) => {
+     
+      if (!Array.isArray(prevMessages)) {
+        console.error("prevMessages is not an array:", prevMessages);
+        return prevMessages;
+      }
+
+      const updatedMessages = prevMessages.map((message) =>
         message.id === messageId
           ? {
               ...message,
@@ -431,13 +496,8 @@ export default function Home() {
                     index === serviceIndex
                       ? {
                           ...service,
-                          messages: service.messages.map((msg) =>
-                            msg.id === 1
-                              ? {
-                                  ...msg,
-                                  value: value,
-                                }
-                              : msg
+                          messages: service.messages.map((msg, i) =>
+                            i === inputIndex ? { ...msg, value: value } : msg
                           ),
                         }
                       : service
@@ -446,9 +506,18 @@ export default function Home() {
               },
             }
           : message
-      ),
+      );
+
+      console.log("Updated messages:", updatedMessages);
+
+      return updatedMessages;
+    });
+
+    setInputService((prevInputService) => ({
+      ...prevInputService,
+      [inputIndex === 0 ? "key" : inputIndex === 1 ? "method" : "url"]: value,
     }));
-  };     
+  };
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-between mt-14">
@@ -499,13 +568,16 @@ export default function Home() {
                 <div className="mt-3 space-y-2">
                   {message.data.listMessages.sections && message.data.listMessages.sections.map((section, sectionIndex) => (
                     <div key={sectionIndex}>
-                      {section.messages && section.messages.map((option) => (
+                      {section.messages && section.messages.map((option, optionIndex) => (
                         <div key={option.id} className="flex items-center space-x-2">
                           <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.title}:</label>
                           <input
                             type="text"
-                            value={option.messages && option.messages[0] ? option.messages[0].title : ""}
-                            onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
+                            defaultValue={option.messages && option.messages[0] ? option.messages[0].title : ""}
+                            onBlur={(e) => {
+                              handleOptionInputChange(message.id, option.id, e.target.value);
+                              saveOptionDescription(message.id, sectionIndex, optionIndex, e.target.value);
+                            }}
                             className="border rounded p-2 w-42"
                           />
                           <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, option.id)}>
@@ -545,8 +617,9 @@ export default function Home() {
                       <label className="text-sm font-semibold text-gray-900 dark:text-white mr-6">Name:</label>
                       <input
                         type="text"
-                        value={(message.data.service.services[2]?.messages[0]?.value) || ""}
-                        onChange={(e) => handleServiceInputChange(message.id, 2, 1, e.target.value)}
+                        //value={(message.data.service.services[2]?.messages[0]?.value) || ""}
+                        value={inputService.name}
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 0, e.target.value)}
                         className="border rounded p-2 w-42 ml-2"
                       />
                     </div>
@@ -554,8 +627,9 @@ export default function Home() {
                       <label className="text-sm font-semibold text-gray-900 dark:text-white mr-3">Method:</label>
                       <input
                         type="text"
-                        value={(message.data.service.services[2]?.messages[1]?.value) || ""}
-                        onChange={(e) => handleServiceInputChange(message.id, 2, 2, e.target.value)} 
+                        //value={(message.data.service.services[2]?.messages[1]?.value) || ""}
+                        value={inputService.method}
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 1, e.target.value)}
                         className="border rounded p-2 w-42 ml-2"
                       />
                     </div>
@@ -563,8 +637,9 @@ export default function Home() {
                       <label className="text-sm font-semibold text-gray-900 dark:text-white mr-8">URL:</label>
                       <input
                         type="text"
-                        value={(message.data.service.services[2]?.messages[2]?.value) || ""} 
-                        onChange={(e) => handleServiceInputChange(message.id, 2, 3, e.target.value)} 
+                        //value={(message.data.service.services[2]?.messages[2]?.value) || ""}
+                        value={inputService.url}
+                        onChange={(e) => handleServiceInputChange(message.id, 2, 2, e.target.value)}
                         className="border rounded p-2 w-42 ml-3"
                       />
                     </div>
