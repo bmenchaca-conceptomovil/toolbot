@@ -99,19 +99,19 @@ export default function Home() {
     setMessages((prevMessages) => {
       const newOptions = [
         {
-          id: `option-${optionCounter}.1`,
+          id: `${optionCounter}.1`,
           title: `Option 1`,
           description: " ",
         },
         {
-          id: `option-${optionCounter}.2`,
+          id: `${optionCounter}.2`,
           title: `Option 2`,
           description: " ",
         },
       ];
 
       const newMessage = {
-        id: optionCounter.toString(),
+        id: messages.messages.length + 1,
         type: "option",
         keyword: "",
         data: {
@@ -132,7 +132,7 @@ export default function Home() {
           preview_url: false,
         },
         prev: prevMessages.messages[prevMessages.messages.length - 1].id.toString(),
-        next: (optionCounter + 2).toString(),
+        next: (prevMessages.messages.length + 1).toString(),
       };
 
       optionCounter += 2;
@@ -191,15 +191,9 @@ export default function Home() {
                           messages: [
                             ...section.messages,
                             {
-                              id: section.messages.length + 1, 
+                              id: `${messageId}.${section.messages.length + 1}`,
                               title: `Option ${section.messages.length + 1}`,
-                              messages: [
-                                {
-                                  id: `id${section.messages.length + 1}`,
-                                  title: "",
-                                  description: " ",
-                                },
-                              ],
+                              description: " ",
                             },
                           ],
                         }
@@ -210,11 +204,10 @@ export default function Home() {
             }
           : message
       );
-
+  
       return { ...prevMessages, messages: updatedMessages };
     });
-  };
-
+  };  
   
   //guardar info sin confirmacion
   const saveMessagesToLocalStorage = () => {
@@ -331,9 +324,10 @@ export default function Home() {
   };
 
   const handleOptionInputChange = (messageId, optionId, value) => {
-    setMessages((prevMessages) => ({
-      ...prevMessages,
-      messages: prevMessages.messages.map((message) =>
+    console.log("handleOptionInputChange called with messageId:", messageId, "optionId:", optionId, "value:", value);
+  
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.messages.map((message) =>
         message.id === messageId
           ? {
               ...message,
@@ -341,11 +335,13 @@ export default function Home() {
                 ...message.data,
                 listMessages: {
                   ...message.data.listMessages,
-                  options: message.data.listMessages.options.map((option) =>
+                  options: (message.data.listMessages.options || []).map((option) =>
                     option.id === optionId
                       ? {
                           ...option,
-                          messages: [{ ...option.messages[0], title: value }],
+                          messages: option.messages.map((msg) =>
+                            msg.id === 1 ? { ...msg, title: value } : msg
+                          ),
                         }
                       : option
                   ),
@@ -353,9 +349,11 @@ export default function Home() {
               },
             }
           : message
-      ),
-    }));
-  };
+      );
+  
+      return { ...prevMessages, messages: updatedMessages };
+    });
+  };   
   
   //Funciones para añadir Servicio
   const addService = () => {
@@ -504,8 +502,8 @@ export default function Home() {
                           <label className="text-sm font-semibold text-gray-900 dark:text-white">{option.title}:</label>
                           <input
                             type="text"
-                            value={option.messages && option.messages[0] ? option.messages[0].title : ""}
-                            onChange={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
+                            defaultValue={option.messages && option.messages[0] ? option.messages[0].title : ""}
+                            onBlur={(e) => handleOptionInputChange(message.id, option.id, e.target.value)}
                             className="border rounded p-2 w-42"
                           />
                           <button className="px-5 h-[2.5rem] text-white bg-red-500 rounded" onClick={() => deleteOption(message.id, option.id)}>
